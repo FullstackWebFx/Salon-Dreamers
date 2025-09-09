@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dreamers Salon — Послуги</title>
+
+  <!-- Reset + Fonts + Icons + Tailwind (optional helpers) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Montserrat:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Extra libs for animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.13/bundled/lenis.min.js"></script>
+
+  <style>
+    :root{
+      --max-w:1200px;
+      --radius:12px;
+      --gap:22px;
+      --bg-dark: #0b0b0b;
+      --glass: rgba(255,255,255,0.06);
+      --accent: #0b0b0b;
+      --card-h: 100%;
+      --font-head: 'Montserrat', sans-serif;
+      --font-display: 'Playfair Display', serif;
+      --font-base: 'Inter', sans-serif;
+    }
+    html,body{height:100%}
+    body{
+      margin:0;font-family:var(--font-base);color:#111;background:#fff;
+      -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+      overflow-x:hidden;
+    }
+    a{color:inherit;text-decoration:none}
+    button{font-family:inherit;cursor:pointer}
+
+    /* Fullscreen background video (site-wide) */
+    .bg-video-wrap{
+      position:fixed;inset:0;z-index:0;overflow:hidden;
+      pointer-events:none;
+    }
+    .bg-video-wrap video{
+      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      min-width:100%;min-height:100%;width:auto;height:auto;
+      object-fit:cover;filter:brightness(.45) saturate(.98);
+      will-change:transform,opacity;
+    }
+    /* subtle overlay to ensure contrast */
+    .bg-overlay{position:fixed;inset:0;background:linear-gradient(180deg,rgba(7,7,7,0.25),rgba(7,7,7,0.55));z-index:1;pointer-events:none}
+
+    /* Header */
+    header.site-header{
+      position:fixed;left:16px;right:16px;top:16px;z-index:1600;transition:transform .36s ease, background .28s ease, opacity .25s;
+      backdrop-filter: blur(6px);
+    }
+    .header-inner{
+      max-width:var(--max-w);margin:0 auto;display:flex;align-items:center;justify-content:space-between;
+      padding:12px;border-radius:12px;background:rgba(12,12,12,0.42);box-shadow:0 6px 28px rgba(3,3,3,0.32);border:1px solid rgba(255,255,255,0.04);
+    }
+    .logo{font-family:var(--font-display);font-weight:700;color:#fff;font-size:18px;letter-spacing:0.2px}
+    .nav{display:flex;gap:18px;align-items:center}
+    .nav a{color:rgba(255,255,255,0.95);font-weight:600;padding:8px 10px;border-radius:8px}
+    .nav a:hover{background:rgba(255,255,255,0.04)}
+    .cta-primary{display:inline-block;padding:9px 14px;border-radius:10px;background:linear-gradient(180deg,#0b0b0b,#1b1b1b);color:#fff;font-weight:800;border:1px solid rgba(255,255,255,.06);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+
+    header.hidden{transform:translateY(-120%);opacity:0}
+
+    /* Page container */
+    main{position:relative;z-index:20;max-width:var(--max-w);margin:120px auto 80px;padding:20px}
+
+    /* Section titles */
+    .section-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+    .section-title{font-family:var(--font-head);font-size:30px;color:#fff;margin:0;text-shadow:0 6px 26px rgba(0,0,0,.5)}
+    .section-sub{color:rgba(255,255,255,.85);font-size:14px;margin:0;padding-left:8px}
+
+    /* Grid of perfect-square cards */
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);align-items:stretch}
+    .card-wrap{border-radius:var(--radius);overflow:hidden;position:relative;background:linear-gradient(180deg,rgba(0,0,0,0.18),rgba(0,0,0,0.48));box-shadow:0 12px 40px rgba(2,2,2,.48);border:1px solid rgba(255,255,255,.04);height:100%}
+    .card-aspect{width:100%;padding-bottom:100%;position:relative} /* square */
+    .card-media{position:absolute;inset:0;z-index:1;overflow:hidden}
+    .card-media img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.03);transition:transform .8s ease}
+    .card-wrap:hover .card-media img{transform:scale(1.09)}
+    .card-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.08),rgba(0,0,0,0.6));z-index:2}
+    .card-content{position:absolute;left:0;right:0;bottom:0;z-index:6;padding:18px;color:#fff;display:flex;flex-direction:column;gap:8px}
+    .card h3{font-family:var(--font-head);margin:0;font-size:18px;color:#fff}
+    .card p.small{margin:0;color:rgba(255,255,255,.92);font-size:13px}
+    .card-actions{display:flex;gap:10px;align-items:center;margin-top:10px}
+
+    .btn-mini{padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#fff;font-weight:700;min-width:130px;text-align:center}
+    .btn-mini:focus{outline:3px solid rgba(43,120,255,.18)}
+    .btn-mini-dark{padding:10px 16px;border-radius:10px;background:linear-gradient(180deg,#0b0b0b,#151515);color:#fff;font-weight:800;border:0;min-width:130px;text-align:center}
+
+    /* Ensure card-link covers entire card for keyboard accessibility but keep buttons clickable */
+    .card-link{position:absolute;inset:0;z-index:4;text-indent:-9999px}
+
+    /* Modal (center) */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:3000;padding:20px}
+    .modal-backdrop.show{display:flex}
+    .modal{background:linear-gradient(180deg,#0f0f10,#141416);border-radius:14px;width:100%;max-width:920px;max-height:92vh;overflow:auto;padding:22px;color:#fff;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+    .modal h2{font-family:var(--font-head);margin:0 0 8px}
+    .modal .modal-close{position:absolute;right:18px;top:18px;background:transparent;border:0;font-size:20px;color:#fff;cursor:pointer}
+    .modal .modal-body{color:rgba(255,255,255,.9);line-height:1.5;font-size:15px}
+    .modal .modal-cta{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+
+    /* Footer */
+    footer{position:relative;z-index:20;margin-top:40px;padding:40px 20px;border-radius:12px;background:linear-gradient(180deg,#0b0b0b,#0f0f0f);color:#ddd;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+    .footer-inner{max-width:var(--max-w);margin:0 auto;display:flex;gap:24px;align-items:flex-start;justify-content:space-between}
+    .footer .col{flex:1;min-width:200px}
+    .socials a{display:inline-block;margin-right:10px;color:#fff;font-size:18px}
+
+    /* Floating CTA */
+    .floating-cta{position:fixed;right:18px;bottom:18px;width:62px;height:62px;border-radius:14px;background:linear-gradient(180deg,#e6b800,#d89b00);color:#0b0b0b;display:flex;align-items:center;justify-content:center;z-index:3000;box-shadow:0 12px 36px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.06);font-weight:800}
+
+    /* Responsive */
+    @media (max-width:1100px){ .grid{grid-template-columns:repeat(2,1fr)} .header-inner{padding:10px} }
+    @media (max-width:720px){ .grid{grid-template-columns:1fr} .header-inner{left:8px;right:8px} .section-title{font-size:22px} }
+
+    /* Accessibility outlines */
+    a:focus,button:focus,input:focus,select:focus,textarea:focus{outline:3px solid rgba(43,120,255,.12);outline-offset:3px}
+  </style>
+</head>
+<body>
+
+  <!-- Full-page video background (site-wide) -->
+  <div class="bg-video-wrap" aria-hidden="true">
+    <video id="siteBgVideo" autoplay muted loop playsinline preload="auto" poster="img/dd1.jpg">
+      <source src="img/ind.vid22.mp4" type="video/mp4">
+      <!-- fallback: static bg -->
+    </video>
+  </div>
+  <div class="bg-overlay" aria-hidden="true"></div>
+
+  <!-- HEADER -->
+  <header class="site-header" id="siteHeader" role="banner" aria-label="Хедер">
+    <div class="header-inner" role="navigation" aria-label="Головне меню">
+      <div style="display:flex;align-items:center;gap:16px">
+        <div class="logo" aria-label="Dreamers Salon">Dreamers Salon</div>
+        <div style="display:flex;flex-direction:column;line-height:1">
+          <div style="font-size:11px;color:rgba(255,255,255,.75)">Салон краси — Київ</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.55)">Пн–Нд 09:00–20:00</div>
+        </div>
+      </div>
+
+      <nav class="nav" role="navigation" aria-label="Головне меню">
+        <a href="strijka_1.html">Стрижки</a>
+        <a href="blonduvannya2.html">Фарбування</a>
+        <a href="ukladki_obrazi.html">Укладки</a>
+        <a href="dog.proceduri.html">Догляд</a>
+        <a href="cholovichii.barber.html">Барбершоп</a>
+        <a href="shop.last.html">Shop</a>
+        <a class="cta-primary" id="headerApply" href="#apply" data-modal="apply">Заявка на співбесіду</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main role="main" aria-label="Основний вміст">
+    <div class="section-header">
+      <div>
+        <h1 class="section-title">Наші напрямки — Професійні послуги</h1>
+        <p class="section-sub">Індивідуальні програми, експертні техніки та уважний догляд. Натисніть «Детальніше» для повної інформації.</p>
+      </div>
+      <div style="text-align:right;min-width:220px">
+        <blockquote style="margin:0;color:rgba(255,255,255,.9);font-style:italic;font-family:var(--font-display);font-size:14px">
+          «Краса — це уважність до деталей. Ми створюємо образи, що підкреслюють вашу унікальність.»
+        </blockquote>
+      </div>
+    </div>
+
+    <!-- SERVICES GRID -->
+    <section id="services" aria-label="Послуги">
+      <div class="grid" role="list" aria-label="Картки послуг">
+
+        <!-- Card 1 -->
+        <article class="card-wrap" role="listitem" aria-label="Стрижки & Тренди">
+          <div class="card-aspect">
+            <a class="card-link" href="strijka_1.html" aria-hidden="true">Стрижки &amp; Тренди</a>
+            <div class="card-media" aria-hidden="true"><img src="img/dd1.jpg" alt="Стрижки — зображення" loading="lazy"></div>
+            <div class="card-overlay"></div>
+            <div class="card-content card">
+              <div><h3>Стрижки &amp; Тренди</h3><p class="small">Актуальні форми</p></div>
+              <div class="card-actions">
+                <button class="btn-mini" data-detail="Стрижки & Тренди" data-href="strijka_1.html" aria-haspopup="dialog">Детальніше</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="card-wrap" role="listitem" aria-label="Фарбування & Блондування">
+          <div class="card-aspect">
+            <a class="card-link" href="blonduvannya2.html" aria-hidden="true">Фарбування</a>
+            <div class="card-media" aria-hidden="true"><img src="img/dd2.jpg" alt="Фарбування — зображення" loading="lazy"></div>
+            <div class="card-overlay"></div>
+            <div class="card-content card">
+              <div><h3>Фарбування &amp; Блондування</h3><p class="small">Блондування і колір</p></div>
+              <div class="card-actions">
+                <button class="btn-mini" data-detail="Фарбування & Блондування" data-href="blonduvannya2.html" aria-haspopup="dialog">Детальніше</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="card-wrap" role="listitem" aria-label="Укладки & Святкові образи">
+          <div class="card-aspect">
+            <a class="card-link" href="ukladki_obrazi.html" aria-hidden="true">Укладки</a>
+            <div class="card-media" aria-hidden="true"><img src="img/dd33.webp" alt="Укладки — зображення" loading="lazy"></div>
+            <div class="card-overlay"></div>
+            <div class="card-content card">
+              <div><h3>Укладки &amp; Святкові образи</h3><p class="small">Святкові образи</p></div>
+              <div class="card-actions">
+                <button class="btn-mini" data-detail="Укладки & Святкові образи" data-href="ukladki_obrazi.html" aria-haspopup="dialog">Детальніше</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 4 -->
+        <article class="card-wrap" role="listitem" aria-label="Доглядові процедури">
+          <div class="card-aspect">
+            <a class="card-link" href="dog.proceduri.html" aria-hidden="true">Догляд</a>
+            <div class="card-media" aria-hidden="true"><img src="img/dd4.jpg" alt="Догляд — зображення" loading="lazy"></div>
+            <div class="card-overlay"></div>
+            <div class="card-content card">
+              <div><h3>Доглядові процедури</h3><p class="small">Лікувальні процедури</p></div>
+              <div class="card-actions">
+                <button class="btn-mini" data-detail="Доглядові процедури" data-href="dog.proceduri.html" aria-haspopup="dialog">Детальніше</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 5 -->
+        <article class="card-wrap" role="listitem" aria-label="Чоловічий зал / Барбершоп">
+          <div class="card-aspect">
+            <a class="card-link" href="cholovichii.barber.html" aria-hidden="true">Барбершоп</a>
+            <div class="card-media" aria-hidden="true"><img src="img/dd5.avif" alt="Барбершоп — зображення" loading="lazy"></div>
+            <div class="card-overlay"></div>
+            <div class="card-content card">
+              <div><h3>Чоловічий зал / Барбершоп</h3><p class="small">Класика і сучасність</p></div>
+              <div class="card-actions">
+                <button class="btn-mini" data-detail="Чоловічий зал / Барбершоп" data-href="cholovichii.barber.html" aria-haspopup="dialog">Детальніше</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 6 -->
+        <article class="card-wrap" role="listitem" aria-label="Gift Cards / Shop">
+          <div class="card-aspect">
+            <a class="card-link" href="shop.last.html" aria-hidden="true">Shop</a>
+            <div class="card-media" aria-hidden="true"><img src="img/dd6.webp" alt="Shop — зображення" loading="lazy"></div>
+            <div class="card-overlay"></div>
+            <div class="card-content card">
+              <div><h3>Gift Cards / Shop</h3><p class="small">Подарункові карти та продукти</p></div>
+              <div class="card-actions">
+                <button class="btn-mini" data-detail="Gift Cards / Shop" data-href="shop.last.html" aria-haspopup="dialog">Детальніше</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Extra informational section (rich content as requested) -->
+    <section style="margin-top:34px;padding:22px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));color:rgba(255,255,255,.95)">
+      <h3 style="font-family:var(--font-head);margin:0 0 8px">Про Dreamers Salon — більше деталей</h3>
+      <p style="margin:0;color:rgba(255,255,255,.85)">
+        Dreamers Salon — команда сертифікованих стилістів і колористів з досвідом, що використовують професійні продукти та індивідуальні протоколи догляду. Ми пропонуємо комплексні курси з відновлення волосся, авторські техніки стрижок та персональні консультації.
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:14px">
+        <div style="background:rgba(0,0,0,.28);padding:12px;border-radius:10px">
+          <strong>Консультація</strong>
+          <p style="margin:8px 0 0;color:rgba(255,255,255,.85)">Повна діагностика волосся, підбір програм та домашні рекомендації.</p>
+        </div>
+        <div style="background:rgba(0,0,0,.28);padding:12px;border-radius:10px">
+          <strong>Відновлення</strong>
+          <p style="margin:8px 0 0;color:rgba(255,255,255,.85)">Курс терапій: кератін, ботокс волосся, інтенсивні маски.</p>
+        </div>
+        <div style="background:rgba(0,0,0,.28);padding:12px;border-radius:10px">
+          <strong>Підбір стилю</strong>
+          <p style="margin:8px 0 0;color:rgba(255,255,255,.85)">Персональний підхід до образу з урахуванням способу життя.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-inner">
+      <div class="col">
+        <div style="font-weight:700;font-family:var(--font-head);font-size:18px;color:#fff">Dreamers Salon</div>
+        <div style="color:#cfcfcf;margin-top:8px">Твій простір краси та натхнення</div>
+        <div style="margin-top:12px;color:#bbb;font-size:13px">© <span id="year"></span> Dreamers Salon</div>
+      </div>
+
+      <div class="col">
+        <strong style="color:#fff">Контакти</strong>
+        <div style="margin-top:8px;color:#d3d3d3">
+          вул. Лофтова, 12, Київ<br>
+          <a href="tel:+380501234567" style="color:#f7f7f7">+38 (050) 123 45 67</a><br>
+          <a href="mailto:info@dreamers-salon.ua" style="color:#f7f7f7">info@dreamers-salon.ua</a><br>
+          Графік: Пн–Нд 09:00 – 20:00
+        </div>
+      </div>
+
+      <div class="col">
+        <strong style="color:#fff">Ми в соцмережах</strong>
+        <div class="socials" style="margin-top:8px">
+          <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+          <a href="#" aria-label="Viber"><i class="fas fa-phone-volume"></i></a>
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating CTA for booking -->
+  <button class="floating-cta" id="floatingCTA" aria-label="Швидкий запис" title="Записатися"><i class="fas fa-phone"></i></button>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal" role="document" id="modalWindow">
+      <button class="modal-close" id="modalClose" aria-label="Закрити">✕</button>
+      <div id="modalContent">
+        <!-- JS injects content -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // small helpers
+    document.getElementById('year').textContent = new Date().getFullYear();
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Header show/hide on scroll
+    const headerEl = document.getElementById('siteHeader');
+    let lastScroll = window.pageYOffset || document.documentElement.scrollTop;
+    let ticking = false;
+    function onScroll(){
+      const current = window.pageYOffset || document.documentElement.scrollTop;
+      if(current > lastScroll + 10 && current > 80) headerEl.classList.add('hidden');
+      else headerEl.classList.remove('hidden');
+      lastScroll = current <= 0 ? 0 : current;
+      ticking = false;
+    }
+    window.addEventListener('scroll', ()=>{ if(!ticking){ requestAnimationFrame(onScroll); ticking = true; } }, {passive:true});
+
+    // Smooth subtle parallax on video with scroll
+    ScrollTrigger.create({
+      start: "top top",
+      end: "bottom bottom",
+      scrub: 0.6,
+      onUpdate: self => {
+        const v = document.getElementById('siteBgVideo');
+        if(v) {
+          // slightly move & zoom depending on progress
+          const p = self.progress;
+          const scale = 1 + p * 0.04;
+          gsap.set(v, {scale: scale, y: p * -20});
+        }
+      }
+    });
+
+    // Modal logic
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const modalContent = document.getElementById('modalContent');
+    const modalClose = document.getElementById('modalClose');
+
+    function openModal(html){
+      modalContent.innerHTML = html;
+      modalBackdrop.classList.add('show');
+      modalBackdrop.setAttribute('aria-hidden','false');
+      document.body.style.overflow = 'hidden';
+      setTimeout(()=> modalBackdrop.querySelector('button, input, select, textarea, a')?.focus(), 80);
+    }
+    function closeModal(){ modalBackdrop.classList.remove('show'); modalBackdrop.setAttribute('aria-hidden','true'); modalContent.innerHTML=''; document.body.style.overflow=''; }
+
+    modalClose.addEventListener('click', closeModal);
+    modalBackdrop.addEventListener('click', (e)=> { if(e.target === modalBackdrop) closeModal(); });
+    document.addEventListener('keydown', (e)=> { if(e.key === 'Escape') closeModal(); });
+
+    // Build large detailed modal content for each service
+    function buildDetailModal(title, href){
+      // very rich content, FAQ, pricing example, timeline, gallery placeholders
+      return `
+        <h2>${title}</h2>
+        <div class="modal-body">
+          <p><strong>Опис послуги:</strong> ${title} — комплексний підхід: консультація, підготовка, виконання та рекомендації по домашньому догляду. Наші майстри застосовують сучасні техніки, що зберігають здоров'я волосся і дають прогнозовані результати.</p>
+
+          <h4 style="margin-top:12px">Що входить у послугу</h4>
+          <ul>
+            <li>Глибинна консультація та підбір відтінку/форми</li>
+            <li>Професійні матеріали та захисні протоколи</li>
+            <li>Покрокова інструкція по догляду вдома</li>
+            <li>Гарантія результату та рекомендації з корекції</li>
+          </ul>
+
+          <h4 style="margin-top:12px">Приблизичний час та ціни</h4>
+          <p>Час: 60–180 хв. Ціна залежить від обсягу роботи. Орієнтовно: від 800 грн до 4500 грн. Точний розрахунок — на консультації.</p>
+
+          <h4 style="margin-top:12px">FAQ — Питання і відповіді</h4>
+          <dl>
+            <dt><strong>Чи безпечне блондування?</strong></dt>
+            <dd>Так, з нашими відновними протоколами та грамотним підходом майстра ризики мінімізуються.</dd>
+            <dt><strong>Чи потрібна підготовка волосся?</strong></dt>
+            <dd>Іноді радимо пройти курс відновлення для ламкого волосся — ми підберемо індивідуально.</dd>
+          </dl>
+
+          <h4 style="margin-top:12px">Результати та догляд</h4>
+          <p>Після процедури ви отримаєте план домашнього догляду, рекомендації по продуктах та терміни для повторного візиту/корекції.</p>
+
+          <div style="margin-top:14px" class="modal-cta">
+            <a class="btn-mini-dark" href="${href}" aria-label="Перейти на сторінку ${title}">Перейти на сторінку</a>
+            <button class="btn-mini" id="bookFromDetail" data-service="${title}">Записатися</button>
+            <button class="btn-mini" id="closeDetail">Закрити</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Booking modal (professional form)
+    function buildBookingModal(defaultService = ''){
+      return `
+        <h2>Запис на послугу ${defaultService ? '— ' + defaultService : ''}</h2>
+        <div class="modal-body">
+          <p>Заповніть форму — ми звʼяжемося для підтвердження та уточнення деталей.</p>
+
+          <form id="bookingForm" style="margin-top:8px;display:grid;gap:10px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <label><span>Ім'я</span><input required name="name" type="text" style="width:100%;padding:10px;border-radius:8px;border:1px solid #222;background:#0d0d0d;color:#fff;margin-top:6px"></label>
+              <label><span>Телефон</span><input required name="phone" type="tel" style="width:100%;padding:10px;border-radius:8px;border:1px solid #222;background:#0d0d0d;color:#fff;margin-top:6px"></label>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <label>Пошта<input name="email" type="email" style="width:100%;padding:10px;border-radius:8px;border:1px solid #222;background:#0d0d0d;color:#fff;margin-top:6px"></label>
+              <label>Послуга
+                <select name="service" style="width:100%;padding:10px;border-radius:8px;border:1px solid #222;background:#0d0d0d;color:#fff;margin-top:6px">
+                  <option>${defaultService || 'Оберіть послугу'}</option>
+                  <option>Стрижки & Тренди</option>
+                  <option>Фарбування & Блондування</option>
+                  <option>Укладки & Святкові образи</option>
+                  <option>Доглядові процедури</option>
+                  <option>Чоловічий зал / Барбершоп</option>
+                  <option>Gift Cards / Shop</option>
+                </select>
+              </label>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <label>Дата<input name="date" type="date" style="width:100%;padding:10px;border-radius:8px;border:1px solid #222;background:#0d0d0d;color:#fff;margin-top:6px"></label>
+              <label>Час<input name="time" type="time" style="width:100%;padding:10px;border-radius:8px;border:1px solid #222;background:#0d0d0d;color:#fff;margin-top:6px"></label>
+            </div>
+            <label>Коментар<textarea name="note" rows="5" style="width:100%;padding:10px;border-radius:8px;border:1px solid #222;background:#0d0d0d;color:#fff;margin-top:6px"></textarea></label>
+
+            <div style="display:flex;gap:10px;justify-content:flex-end">
+              <button class="btn-mini-dark" type="submit">Надіслати заявку</button>
+              <button class="btn-mini" type="button" id="cancelBooking">Скасувати</button>
+            </div>
+          </form>
+
+          <div id="bookingResult" style="display:none;margin-top:12px;color:lightgreen">Дякуємо! Ми зв'яжемося з вами найближчим часом.</div>
+        </div>
+      `;
+    }
+
+    // Delegation: open detail modal on card button click
+    document.body.addEventListener('click', (e) => {
+      const detailBtn = e.target.closest('[data-detail]');
+      if(detailBtn){
+        e.preventDefault();
+        const title = detailBtn.getAttribute('data-detail') || 'Послуга';
+        const href = detailBtn.getAttribute('data-href') || '#';
+        openModal(buildDetailModal(title, href));
+
+        // attach listeners inside modal after render
+        setTimeout(()=> {
+          document.getElementById('closeDetail')?.addEventListener('click', closeModal);
+          document.getElementById('bookFromDetail')?.addEventListener('click', (ev)=>{
+            ev.preventDefault();
+            openModal(buildBookingModal(title));
+          });
+        }, 80);
+      }
+
+      // booking CTA
+      if(e.target.closest('#floatingCTA') || e.target.closest('#headerApply')){
+        e.preventDefault();
+        openModal(buildBookingModal(''));
+      }
+    });
+
+    // Booking form submission (simulate)
+    document.body.addEventListener('submit', function(e){
+      if(e.target && e.target.id === 'bookingForm'){
+        e.preventDefault();
+        const form = e.target;
+        form.style.display = 'none';
+        const res = document.getElementById('bookingResult'); if(res) res.style.display = 'block';
+        setTimeout(()=>{ closeModal(); alert('Форма надіслана. Ми з вами зв\'яжемося (симуляція).'); }, 900);
+      }
+    });
+
+    document.body.addEventListener('click', (e)=>{ if(e.target && e.target.id === 'cancelBooking') closeModal(); });
+
+    // small entrance animation for cards
+    gsap.from('.card-wrap', {y:18,opacity:0,stagger:0.07,duration:0.9,ease:'power2.out',delay:0.12});
+
+    // Lenis smooth scroll (light)
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smooth: true,
+    });
+    function raf(time){
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    // Ensure images lazy loading (already set) and keyboard accessibility
+    document.querySelectorAll('.card-link').forEach(link=>{
+      link.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); const href = link.getAttribute('href'); if(href) window.location.href = href; } });
+    });
+
+    // Ensure video plays (some browsers require user gesture; it's muted so OK)
+    const bgVideo = document.getElementById('siteBgVideo');
+    if(bgVideo){
+      bgVideo.addEventListener('error', ()=>{ console.warn('Background video failed to load. Check file path: img/ind.vid22.mp4'); });
+    }
+  </script>
+</body>
+</html>
